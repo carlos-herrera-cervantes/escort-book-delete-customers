@@ -2,5 +2,5 @@
 
 class AccessToken
   include Mongoid::Document
-  store_in database: 'accesstokens'
+  store_in collection: 'accesstokens'
 end

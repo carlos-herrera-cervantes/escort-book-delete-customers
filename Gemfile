@@ -20,6 +20,8 @@ gem 'rufus-scheduler', '~> 3.8', '>= 3.8.1'
 
 gem 'ruby-kafka', '~> 1.5'
 
+gem 'mongoid-pagination'
+
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 # gem "jbuilder"
 

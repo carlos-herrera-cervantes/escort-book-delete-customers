@@ -2,8 +2,8 @@
 
 # This repository apply operations on profile table for customer_profile DB
 class CustomerProfileRepository
-  def find
-    CustomerProfile.all
+  def find_by_filter(filter)
+    CustomerProfile.where(filter).all
   end
 
   def destroy_all_by_filter(filter)

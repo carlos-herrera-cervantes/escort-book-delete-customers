@@ -19,4 +19,8 @@ class ScheduledRemovalRepository
   def update_many_by_filter(filter, new_values)
     ScheduledRemoval.where(filter).update_all(new_values)
   end
+
+  def destroy_all_by_filter(filter)
+    ScheduledRemoval.destroy_all filter
+  end
 end

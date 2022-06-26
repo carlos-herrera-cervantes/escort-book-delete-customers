@@ -4,22 +4,22 @@
 class RemoverService
   def initialize(
       removal_repository,
-      c_profile_repository,
-      e_profile_repository,
+      customer_profile_repository,
+      escort_profile_repository,
       card_repository,
       token_repository,
-      c_bank_repository,
-      e_bank_repository,
+      customer_bank_repository,
+      escort_bank_repository,
       payment_repository,
       user_repository
   )
     @removal_repository = removal_repository
-    @customer_profile_repository = c_profile_repository
-    @escort_profile_repository = e_profile_repository
+    @customer_profile_repository = customer_profile_repository
+    @escort_profile_repository = escort_profile_repository
     @card_repository = card_repository
     @access_token_repository = token_repository
-    @customer_bank_repository = c_bank_repository
-    @escort_bank_repository = e_bank_repository
+    @customer_bank_repository = customer_bank_repository
+    @escort_bank_repository = escort_bank_repository
     @user_payment_repository = payment_repository
     @user_repository = user_repository
   end
@@ -40,6 +40,11 @@ class RemoverService
 
     customer_ids = customers.map(&:user_id)
     bson_customer_ids = customers.map { |c| BSON::ObjectId.from_string(c.user_id) }
+
+    # TODO: Here we need to call the payment gateway for:
+    # 1 - Delete customer bank account
+    # 2 - Delete customer cards
+    # Think about how to delete customer cards and bank account in batches
 
     profile_filter = { customer_id: customer_ids }
     customer_profile_repository.destroy_all_by_filter profile_filter
@@ -84,6 +89,10 @@ class RemoverService
     escort_ids = escorts.map(&:user_id)
     escort_emails = escorts.map(&:user_email)
     bson_escort_ids = escorts.map { |c| BSON::ObjectId.from_string(c.user_id) }
+
+    # TODO: Here we need to call the payment gateway for:
+    # 1 - Delete the escort bank account
+    # Think about how to delete bank accounts in batches
 
     profile_filter = { escort_id: escort_ids }
     escort_profile_repository.destroy_all_by_filter profile_filter

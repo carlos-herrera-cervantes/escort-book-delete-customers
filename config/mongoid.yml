@@ -1,8 +1,0 @@
-development:
-  clients:
-    default:
-      database: escort-book-authorizer
-      hosts:
-        - localhost:27017
-      options:
-  options:

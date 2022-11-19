@@ -1,42 +1,78 @@
 package main
 
 import (
-	"fmt"
-
 	"escort-book-delete-customers/config"
-
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"escort-book-delete-customers/consumers"
+	"escort-book-delete-customers/db"
+	"escort-book-delete-customers/handlers"
+	"escort-book-delete-customers/jobs"
+	"escort-book-delete-customers/repositories"
+	"escort-book-delete-customers/strategies"
 )
 
 func main() {
-	consumer, _ := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers":  config.InitializeKafka().BootstrapServers,
-		"group.id":           config.InitializeKafka().GroupId,
-		"auto.offset.reset":  "smallest",
-		"enable.auto.commit": true,
-	})
-
-	topics := []string{
-		config.InitializeKafka().Topics.UserActiveAccount,
-		config.InitializeKafka().Topics.UserDeleteAccount,
+	customerRemovalRepository := &repositories.CustomerRemovalRepository{
+		Data: db.NewMongoClient(),
 	}
-	_ = consumer.SubscribeTopics(topics, nil)
-
-	run := true
-
-	for run {
-		ev := consumer.Poll(0)
-
-		switch e := ev.(type) {
-		case *kafka.Message:
-			fmt.Println("New message")
-		case kafka.PartitionEOF:
-			fmt.Println("Reached: ", e)
-		case kafka.Error:
-			fmt.Println("Error: ", e)
-			run = false
-		}
+	customerProfileRepository := &repositories.CustomerProfileRepository{
+		Data: db.NewPostgresClient(),
+	}
+	escortProfileRepository := &repositories.EscortProfileRepository{
+		Data: db.NewPostgresClient(),
+	}
+	cardRepository := &repositories.CardRepository{
+		Data: db.NewMongoClient(),
+	}
+	accessTokenRepository := &repositories.AccessTokenRepository{
+		Data: db.NewMongoClient(),
+	}
+	bankAccountRepository := &repositories.BankAccountRepository{
+		Data: db.NewMongoClient(),
+	}
+	userPaymentRepository := &repositories.UserPaymentRepository{
+		Data: db.NewMongoClient(),
+	}
+	userRepository := &repositories.UserRepository{
+		Data: db.NewMongoClient(),
 	}
 
-	_ = consumer.Close()
+	doRemovalStrategy := &strategies.DoRemovalStrategy{
+		CustomerRemovalRepository: customerRemovalRepository,
+		CustomerProfileRepository: customerProfileRepository,
+		EscortProfileRepository:   escortProfileRepository,
+	}
+	undoRemovalStrategy := &strategies.UndoRemovalStrategy{
+		CustomerRemovalRepository: customerRemovalRepository,
+	}
+	accountStrategies := map[string]strategies.IAccountStrategy{
+		config.InitializeKafka().Topics.UserDeleteAccount: doRemovalStrategy,
+		config.InitializeKafka().Topics.UserActiveAccount: undoRemovalStrategy,
+	}
+
+	accountHandler := handlers.AccountHandler{
+		StrategyManager: strategies.AccountStrategyManager{
+			Strategies: accountStrategies,
+		},
+	}
+
+	accountRemovalJob := jobs.AccountRemovalJob{
+		CustomerRemovalRepository: customerRemovalRepository,
+		CustomerProfileRepository: customerProfileRepository,
+		EscortProfileRepository:   escortProfileRepository,
+		CardRepository:            cardRepository,
+		AccessTokenRepository:     accessTokenRepository,
+		BankAccountRepository:     bankAccountRepository,
+		UserPaymentRepository:     userPaymentRepository,
+		UserRepository:            userRepository,
+	}
+	accountRemovalJobStopper := accountRemovalJob.StartRemovalAccount(
+		config.InitializeJob().RemovalAccount,
+	)
+
+	accountRemovalConsumer := consumers.AccountRemovalConsumer{
+		EventHandler: accountHandler,
+	}
+	accountRemovalConsumer.StartConsumer()
+
+	accountRemovalJobStopper()
 }

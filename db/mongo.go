@@ -12,10 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var mongoInstance *mongoClient
+var mongoInstance *MongoClient
 var singleMongoClient sync.Once
 
-type mongoClient struct {
+type MongoClient struct {
 	PamentDB     *mongo.Database
 	AuthorizerDB *mongo.Database
 	SchedulerDB  *mongo.Database
@@ -32,14 +32,14 @@ func initMongoClient() {
 		log.Fatalf("Error initializing mongo client: %s", err.Error())
 	}
 
-	mongoInstance = &mongoClient{
+	mongoInstance = &MongoClient{
 		PamentDB:     client.Database(config.InitializeMongo().Databases.Payment),
 		AuthorizerDB: client.Database(config.InitializeMongo().Databases.Authorizer),
 		SchedulerDB:  client.Database(config.InitializeMongo().Databases.Scheduler),
 	}
 }
 
-func NewMongoClient() *mongoClient {
+func NewMongoClient() *MongoClient {
 	singleMongoClient.Do(initMongoClient)
 	return mongoInstance
 }

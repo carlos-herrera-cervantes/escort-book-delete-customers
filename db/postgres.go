@@ -2,15 +2,18 @@ package db
 
 import (
 	"database/sql"
-	"escort-book-delete-customers/config"
 	"log"
 	"sync"
+
+	"escort-book-delete-customers/config"
+
+	_ "github.com/lib/pq"
 )
 
-var postgresInstance *postgresClient
+var postgresInstance *PostgresClient
 var singlePostgresClient sync.Once
 
-type postgresClient struct {
+type PostgresClient struct {
 	CustomerProfileDB *sql.DB
 	EscortProfileDB   *sql.DB
 }
@@ -28,13 +31,13 @@ func initPostgresClient() {
 		log.Fatalf("Error connectiing with escort_profile DB: %s", err.Error())
 	}
 
-	postgresInstance = &postgresClient{
+	postgresInstance = &PostgresClient{
 		CustomerProfileDB: customerProfileDB,
 		EscortProfileDB:   escortProfileDB,
 	}
 }
 
-func NewPostgresClient() *postgresClient {
+func NewPostgresClient() *PostgresClient {
 	singlePostgresClient.Do(initPostgresClient)
 	return postgresInstance
 }

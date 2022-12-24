@@ -17,7 +17,7 @@ type CustomerRemovalRepository struct {
 	Data *db.MongoClient
 }
 
-func (r CustomerRemovalRepository) Get(ctx context.Context, filter interface{}) (models.CustomerRemoval, error) {
+func (r CustomerRemovalRepository) Get(ctx context.Context, filter bson.M) (models.CustomerRemoval, error) {
 	collection := r.Data.SchedulerDB.Collection(customerRemovalCollection)
 	singleResult := collection.FindOne(ctx, filter)
 
@@ -60,7 +60,7 @@ func (r CustomerRemovalRepository) Create(ctx context.Context, removal models.Cu
 	return removal, nil
 }
 
-func (r CustomerRemovalRepository) Update(ctx context.Context, filter interface{}, document interface{}) (models.CustomerRemoval, error) {
+func (r CustomerRemovalRepository) Update(ctx context.Context, filter bson.M, document interface{}) (models.CustomerRemoval, error) {
 	collection := r.Data.SchedulerDB.Collection(customerRemovalCollection)
 	after := options.After
 	updateOptions := options.FindOneAndUpdateOptions{
@@ -77,7 +77,7 @@ func (r CustomerRemovalRepository) Update(ctx context.Context, filter interface{
 	return removal, nil
 }
 
-func (r CustomerRemovalRepository) Delete(ctx context.Context, filter interface{}) error {
+func (r CustomerRemovalRepository) Delete(ctx context.Context, filter bson.M) error {
 	collection := r.Data.SchedulerDB.Collection(customerRemovalCollection)
 
 	if _, err := collection.DeleteOne(ctx, filter); err != nil {

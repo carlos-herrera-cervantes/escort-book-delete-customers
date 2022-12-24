@@ -1,0 +1,33 @@
+version: '3'
+services:
+  postgres_customer_db:
+    image: 'postgres:14.6'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./sql/customer-db-init.sql:/docker-entrypoint-initdb.d/customer-db-init.sql
+  postgres_escort_db:
+    image: 'postgres:14.6'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./sql/escort-db-init.sql:/docker-entrypoint-initdb.d/escort-db-init.sql
+  mongo:
+    image: 'mongo:4.4'
+  test:
+    build:
+      context: .
+      dockerfile: dockerfile.test
+    volumes:
+      - data:/app
+    working_dir: /app
+    user: ${MY_USER:-root}
+    depends_on:
+      - postgres_customer_db
+      - postgres_escort_db
+      - mongo
+    command: 'bash ./test.sh'
+volumes:
+  data:

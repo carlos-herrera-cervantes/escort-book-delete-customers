@@ -2,9 +2,10 @@ package responsabilities
 
 import (
 	"context"
+	"fmt"
+
 	"escort-book-delete-customers/models"
 	"escort-book-delete-customers/repositories"
-	"fmt"
 )
 
 type EscortProfileStep struct {
